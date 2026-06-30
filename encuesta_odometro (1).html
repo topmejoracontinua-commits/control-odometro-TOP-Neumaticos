@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Registro de Odómetro - Control de Flota</title>
+<style>
+  :root{
+    --bg:#1b2430;
+    --panel:#222e3d;
+    --accent:#ffb347;
+    --accent-dim:#8a5a1f;
+    --text:#eef2f6;
+    --muted:#9aa7b6;
+    --good:#3ddc84;
+    --error:#ff6b6b;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      radial-gradient(circle at 20% 0%, #2a3849 0%, transparent 50%),
+      var(--bg);
+    font-family:'Segoe UI', system-ui, -apple-system, sans-serif;
+    color:var(--text);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+  }
+  .card{
+    width:100%;
+    max-width:460px;
+    background:var(--panel);
+    border:1px solid #2f3d4f;
+    border-radius:14px;
+    padding:32px 28px;
+    box-shadow:0 20px 50px rgba(0,0,0,0.35);
+  }
+  .eyebrow{
+    font-size:12px;
+    letter-spacing:2px;
+    text-transform:uppercase;
+    color:var(--accent);
+    font-weight:700;
+    margin-bottom:6px;
+  }
+  h1{
+    font-size:22px;
+    margin:0 0 6px;
+  }
+  .sub{
+    color:var(--muted);
+    font-size:14px;
+    margin-bottom:28px;
+    line-height:1.5;
+  }
+  label{
+    display:block;
+    font-size:13px;
+    color:var(--muted);
+    margin-bottom:6px;
+    margin-top:18px;
+  }
+  input, select{
+    width:100%;
+    padding:12px 14px;
+    border-radius:8px;
+    border:1px solid #3a4a5d;
+    background:#1b2430;
+    color:var(--text);
+    font-size:15px;
+    outline:none;
+    transition:border-color .15s;
+  }
+  input:focus, select:focus{
+    border-color:var(--accent);
+  }
+  button{
+    margin-top:26px;
+    width:100%;
+    padding:13px;
+    border:none;
+    border-radius:8px;
+    background:var(--accent);
+    color:#1b2430;
+    font-weight:700;
+    font-size:15px;
+    cursor:pointer;
+    transition:transform .1s, background .15s;
+  }
+  button:hover{ background:#ffc46b; }
+  button:active{ transform:scale(0.98); }
+  button:disabled{
+    background:#5a5145;
+    color:#aaa;
+    cursor:not-allowed;
+  }
+  .msg{
+    margin-top:16px;
+    font-size:14px;
+    text-align:center;
+    min-height:18px;
+  }
+  .msg.ok{ color:var(--good); }
+  .msg.err{ color:var(--error); }
+  .footer-note{
+    margin-top:22px;
+    font-size:11px;
+    color:var(--muted);
+    text-align:center;
+    line-height:1.5;
+  }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="eyebrow">Control de flota</div>
+  <h1>Registro de odómetro</h1>
+  <div class="sub">Completá los datos cada vez que cargues combustible. Con esto vamos a calcular el costo por km de cada vehículo.</div>
+
+  <form id="odoForm">
+    <label for="nombre">Tu nombre</label>
+    <input type="text" id="nombre" name="nombre" placeholder="Ej: Mauricio Espindola" required>
+
+    <label for="vehiculo">Vehículo / Matrícula</label>
+    <select id="vehiculo" name="vehiculo" required>
+      <option value="" disabled selected>Seleccioná un vehículo</option>
+      <option value="Espindola Mauricio - AF 407 VX">Espindola Mauricio — AF 407 VX</option>
+      <option value="Da Silva Rodrigo - AF 407 VY">Da Silva Rodrigo — AF 407 VY</option>
+      <option value="Favio Rollet/Logística CORRIENTES - AA320PT">Favio Rollet/Logística CORRIENTES — AA320PT</option>
+      <option value="Jorge Lubaczewski - AA 320 OO">Jorge Lubaczewski — AA 320 OO</option>
+      <option value="Talavera Lucas - AE636DZ">Talavera Lucas — AE636DZ</option>
+      <option value="Silva Alexis - AE636DY">Silva Alexis — AE636DY</option>
+      <option value="Sanabria Julio - AE874DC">Sanabria Julio — AE874DC</option>
+      <option value="Garcia Daniel Alejandro - AE874DD">Garcia Daniel Alejandro — AE874DD</option>
+      <option value="Alexander Ayala/Logística POSADAS - AF407VZ">Alexander Ayala/Logística POSADAS — AF407VZ</option>
+      <option value="Logística CORRIENTES - GKP 250">Logística CORRIENTES — GKP 250</option>
+      <option value="Sucursal Posadas - PAV 403">Sucursal Posadas — PAV 403</option>
+      <option value="Sucursal OBERÁ - MZD 439">Sucursal OBERÁ — MZD 439</option>
+      <option value="Sucursal ELDORADO - MZD 440">Sucursal ELDORADO — MZD 440</option>
+    </select>
+
+    <label for="odometro">Odómetro actual (km)</label>
+    <input type="number" id="odometro" name="odometro" placeholder="Ej: 152340" min="0" step="1" required>
+
+    <button type="submit" id="submitBtn">Enviar registro</button>
+    <div class="msg" id="msg"></div>
+  </form>
+
+  <div class="footer-note">
+    Los datos se guardan automáticamente en la planilla de Google Sheets del equipo.
+  </div>
+</div>
+
+<script>
+// ⚠️ PASO IMPORTANTE: reemplazá esta URL por la de tu Google Apps Script Web App
+// (instrucciones abajo del archivo, te las explico en el chat)
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzbfA5_hV8BOjHlLxh4IjFibYeLxA9ISxNnS-U4PzMpLDUpKlsfyWKMe4SCevREpQ-N/exec";
+
+const form = document.getElementById('odoForm');
+const msg = document.getElementById('msg');
+const btn = document.getElementById('submitBtn');
+
+form.addEventListener('submit', async function(e){
+  e.preventDefault();
+  msg.textContent = '';
+  msg.className = 'msg';
+
+  if (SCRIPT_URL.includes('PEGA_AQUI')) {
+    msg.textContent = 'Falta configurar la URL del Apps Script (ver instrucciones).';
+    msg.className = 'msg err';
+    return;
+  }
+
+  const data = {
+    fecha: new Date().toISOString(),
+    nombre: document.getElementById('nombre').value,
+    vehiculo: document.getElementById('vehiculo').value,
+    odometro: document.getElementById('odometro').value
+  };
+
+  btn.disabled = true;
+  btn.textContent = 'Enviando...';
+
+  try{
+    await fetch(SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(data)
+    });
+    msg.textContent = '✓ Registro enviado correctamente';
+    msg.className = 'msg ok';
+    form.reset();
+  } catch(err){
+    msg.textContent = 'Error al enviar. Intentá de nuevo.';
+    msg.className = 'msg err';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Enviar registro';
+  }
+});
+</script>
+
+</body>
+</html>
